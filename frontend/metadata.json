@@ -1,0 +1,8 @@
+
+{
+  "name": "IDTrust - Privacy Identity Platform",
+  "description": "A secure, user-centric digital identity platform allowing selective data sharing, consent management, and AI-driven privacy risk assessment for healthcare, agriculture, and urban services.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
