@@ -1,0 +1,27 @@
+{
+  "name": "au404",
+  "version": "1.0.0",
+  "description": "",
+  "main": "mail.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Krish-452/AU404.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Krish-452/AU404/issues"
+  },
+  "homepage": "https://github.com/Krish-452/AU404#readme",
+  "dependencies": {
+    "express": "^5.2.1",
+    "mongoose": "^9.1.4",
+    "nodemailer": "^7.0.12",
+    "otplib": "^13.1.1"
+  }
+}
