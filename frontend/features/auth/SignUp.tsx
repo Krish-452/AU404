@@ -2,7 +2,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
-import { Shield, User, Building2, CheckCircle, ArrowRight, Loader2, Landmark, Eye, EyeOff, XCircle, CheckCircle2, Sun, Moon } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+// Added Lock to the imports from lucide-react to fix JSX errors
+import { Shield, User, Building2, CheckCircle, ArrowRight, Loader2, Landmark, Eye, EyeOff, XCircle, CheckCircle2, Sun, Moon, Briefcase, FileText, Hash, Lock } from 'lucide-react';
 import { UserRole } from '../../types';
 
 const SignUp: React.FC = () => {
@@ -12,10 +14,21 @@ const SignUp: React.FC = () => {
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  // New Company Specific Fields
+  const [pan, setPan] = useState('');
+  const [gstin, setGstin] = useState('');
+  const [cin, setCin] = useState('');
+
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+
+  // Validation regex for Indian regulatory IDs
+  const panRegex = /[A-Z]{5}[0-9]{4}[A-Z]{1}/;
+  const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+  const cinRegex = /^[LU][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/;
 
   // Password validation rules
   const validations = {
@@ -26,28 +39,45 @@ const SignUp: React.FC = () => {
     match: password === confirmPassword && confirmPassword !== ''
   };
 
-  const isFormValid = 
-    email !== '' && 
-    name !== '' && 
-    validations.minLength && 
-    validations.hasUpper && 
-    validations.hasLower && 
-    validations.hasNumber && 
-    validations.match;
+  const isCompanyValid = role === UserRole.COMPANY
+    ? (pan.length === 10 && panRegex.test(pan.toUpperCase()) &&
+      gstin.length === 15 && gstinRegex.test(gstin.toUpperCase()) &&
+      cin.length === 21 && cinRegex.test(cin.toUpperCase()))
+    : true;
+
+  const isFormValid =
+    email !== '' &&
+    name !== '' &&
+    validations.minLength &&
+    validations.hasUpper &&
+    validations.hasLower &&
+    validations.hasNumber &&
+    validations.match &&
+    isCompanyValid;
+
+  /* 
+   * Added 'signup' to destructuring from useAuth() 
+   * Updated handleSignUp to use real API
+   */
+  const { signup } = useAuth(); // Import signup
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid) {
-      setError('Please ensure all security requirements are met.');
+      setError('Please ensure all security and regulatory requirements are met.');
       return;
     }
-    
+
     setError('');
     setLoading(true);
-    // Simulate API registration delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setLoading(false);
-    setSubmitted(true);
+    try {
+      await signup(name, email, password, role);
+      setSubmitted(true);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submitted) {
@@ -57,21 +87,21 @@ const SignUp: React.FC = () => {
           <div className="inline-flex h-24 w-24 items-center justify-center rounded-[2rem] bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 shadow-xl shadow-emerald-100/50 dark:shadow-none transition-colors">
             <CheckCircle size={48} />
           </div>
-          
+
           <div className="space-y-6">
             <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">
               {role === UserRole.COMPANY ? 'Application Filed' : 'Identity Created'}
             </h2>
             <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed uppercase text-[10px] tracking-widest">
-              {role === UserRole.COMPANY 
-                ? 'Your request for a Provider License has been broadcast to the Infrastructure Admins. You will be notified via secure shard once verified.' 
+              {role === UserRole.COMPANY
+                ? 'Your request for a Provider License has been broadcast to the Infrastructure Admins. You will be notified via secure shard once verified.'
                 : 'Your sovereign identity node is ready. You can now access your personal vault using your secure phrase and MFA.'}
             </p>
           </div>
 
           <div className="pt-8">
-            <Link 
-              to="/login" 
+            <Link
+              to="/login"
               className="inline-flex items-center gap-3 px-10 py-5 bg-[#0f172a] dark:bg-indigo-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl hover:bg-black dark:hover:bg-indigo-700 transition-all active:scale-95"
             >
               Return to Gateway
@@ -89,17 +119,17 @@ const SignUp: React.FC = () => {
       <div className="h-10 bg-[#0f172a] dark:bg-black w-full flex items-center justify-between px-6 shrink-0 border-b dark:border-slate-800 transition-colors">
         <span className="text-[10px] font-black text-white uppercase tracking-widest">Identity Enrollment Gateway</span>
         <div className="flex items-center gap-6">
-           <button onClick={toggleTheme} className="text-white hover:text-orange-400 transition-colors">
-              {theme === 'light' ? <Moon size={14} /> : <Sun size={14} />}
-           </button>
-           <div className="flex gap-2">
-              <span className="h-3 w-3 rounded-full bg-orange-400"></span>
-              <span className="h-3 w-3 rounded-full bg-white"></span>
-           </div>
+          <button onClick={toggleTheme} className="text-white hover:text-orange-400 transition-colors">
+            {theme === 'light' ? <Moon size={14} /> : <Sun size={14} />}
+          </button>
+          <div className="flex gap-2">
+            <span className="h-3 w-3 rounded-full bg-orange-400"></span>
+            <span className="h-3 w-3 rounded-full bg-white"></span>
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 flex items-center justify-center p-6 py-12">
+      <div className="flex-1 flex items-center justify-center p-6 py-12 overflow-y-auto">
         <div className="max-w-xl w-full">
           <div className="text-center mb-12">
             <div className="inline-flex items-center justify-center h-20 w-20 rounded-[1.5rem] bg-[#0f172a] dark:bg-black text-white mb-8 shadow-2xl">
@@ -118,11 +148,10 @@ const SignUp: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setRole(UserRole.CITIZEN)}
-                      className={`flex items-center gap-5 p-6 rounded-[1.5rem] border-2 transition-all ${
-                        role === UserRole.CITIZEN 
-                        ? 'border-[#0f172a] dark:border-indigo-600 bg-[#0f172a] dark:bg-indigo-600 text-white shadow-xl' 
+                      className={`flex items-center gap-5 p-6 rounded-[1.5rem] border-2 transition-all ${role === UserRole.CITIZEN
+                        ? 'border-[#0f172a] dark:border-indigo-600 bg-[#0f172a] dark:bg-indigo-600 text-white shadow-xl'
                         : 'border-slate-50 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:border-slate-200 dark:hover:border-slate-600 hover:bg-white dark:hover:bg-slate-700'
-                      }`}
+                        }`}
                     >
                       <User size={24} />
                       <div className="text-left">
@@ -134,11 +163,10 @@ const SignUp: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setRole(UserRole.COMPANY)}
-                      className={`flex items-center gap-5 p-6 rounded-[1.5rem] border-2 transition-all ${
-                        role === UserRole.COMPANY 
-                        ? 'border-[#0f172a] dark:border-indigo-600 bg-[#0f172a] dark:bg-indigo-600 text-white shadow-xl' 
+                      className={`flex items-center gap-5 p-6 rounded-[1.5rem] border-2 transition-all ${role === UserRole.COMPANY
+                        ? 'border-[#0f172a] dark:border-indigo-600 bg-[#0f172a] dark:bg-indigo-600 text-white shadow-xl'
                         : 'border-slate-50 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:border-slate-200 dark:hover:border-slate-600 hover:bg-white dark:hover:bg-slate-700'
-                      }`}
+                        }`}
                     >
                       <Building2 size={24} />
                       <div className="text-left">
@@ -150,33 +178,86 @@ const SignUp: React.FC = () => {
                 </div>
 
                 <div className="space-y-4">
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="block w-full px-6 py-5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-[#0f172a] dark:focus:ring-indigo-600 focus:bg-white dark:focus:bg-slate-900 text-sm font-bold dark:text-white outline-none transition-all"
-                    placeholder={role === UserRole.COMPANY ? "Organization Legal Name" : "Full Legal Name"}
-                  />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="block w-full px-6 py-5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-[#0f172a] dark:focus:ring-indigo-600 focus:bg-white dark:focus:bg-slate-900 text-sm font-bold dark:text-white outline-none transition-all"
-                    placeholder="Secure Email / Identifier"
-                  />
-                  
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="block w-full px-6 py-5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-[#0f172a] dark:focus:ring-indigo-600 focus:bg-white dark:focus:bg-slate-900 text-sm font-bold dark:text-white outline-none transition-all pl-14"
+                      placeholder={role === UserRole.COMPANY ? "Organization Legal Name" : "Full Legal Name"}
+                    />
+                    <Briefcase className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  </div>
+
+                  <div className="relative">
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="block w-full px-6 py-5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-[#0f172a] dark:focus:ring-indigo-600 focus:bg-white dark:focus:bg-slate-900 text-sm font-bold dark:text-white outline-none transition-all pl-14"
+                      placeholder="Secure Email / Identifier"
+                    />
+                    <User className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  </div>
+
+                  {/* Company Specific Regulatory Fields */}
+                  {role === UserRole.COMPANY && (
+                    <div className="space-y-4 animate-in slide-in-from-top-4 duration-500">
+                      <div className="relative">
+                        <input
+                          type="text"
+                          required
+                          maxLength={10}
+                          value={pan}
+                          onChange={(e) => setPan(e.target.value.toUpperCase())}
+                          className="block w-full px-6 py-5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-[#0f172a] dark:focus:ring-indigo-600 focus:bg-white dark:focus:bg-slate-900 text-sm font-bold dark:text-white outline-none transition-all pl-14 uppercase"
+                          placeholder="Company PAN Card (10 Digits)"
+                        />
+                        <FileText className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                      </div>
+
+                      <div className="relative">
+                        <input
+                          type="text"
+                          required
+                          maxLength={15}
+                          value={gstin}
+                          onChange={(e) => setGstin(e.target.value.toUpperCase())}
+                          className="block w-full px-6 py-5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-[#0f172a] dark:focus:ring-indigo-600 focus:bg-white dark:focus:bg-slate-900 text-sm font-bold dark:text-white outline-none transition-all pl-14 uppercase"
+                          placeholder="GSTIN (15 Digits)"
+                        />
+                        <Hash className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                      </div>
+
+                      <div className="relative">
+                        <input
+                          type="text"
+                          required
+                          maxLength={21}
+                          value={cin}
+                          onChange={(e) => setCin(e.target.value.toUpperCase())}
+                          className="block w-full px-6 py-5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-[#0f172a] dark:focus:ring-indigo-600 focus:bg-white dark:focus:bg-slate-900 text-sm font-bold dark:text-white outline-none transition-all pl-14 uppercase"
+                          placeholder="CIN (21 Digits)"
+                        />
+                        <Shield className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                      </div>
+                    </div>
+                  )}
+
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="block w-full px-6 py-5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-[#0f172a] dark:focus:ring-indigo-600 focus:bg-white dark:focus:bg-slate-900 text-sm font-bold dark:text-white outline-none transition-all"
+                      className="block w-full px-6 py-5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-[#0f172a] dark:focus:ring-indigo-600 focus:bg-white dark:focus:bg-slate-900 text-sm font-bold dark:text-white outline-none transition-all pl-14"
                       placeholder="Establish Secure Phrase"
                     />
-                    <button 
+                    {/* Fixed: Now correctly uses the imported Lock icon from lucide-react */}
+                    <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
@@ -185,14 +266,18 @@ const SignUp: React.FC = () => {
                     </button>
                   </div>
 
-                  <input
-                    type="password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="block w-full px-6 py-5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-[#0f172a] dark:focus:ring-indigo-600 focus:bg-white dark:focus:bg-slate-900 text-sm font-bold dark:text-white outline-none transition-all"
-                    placeholder="Re-enter Secure Phrase"
-                  />
+                  <div className="relative">
+                    <input
+                      type="password"
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="block w-full px-6 py-5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-[#0f172a] dark:focus:ring-indigo-600 focus:bg-white dark:focus:bg-slate-900 text-sm font-bold dark:text-white outline-none transition-all pl-14"
+                      placeholder="Re-enter Secure Phrase"
+                    />
+                    {/* Fixed: Now correctly uses the imported Lock icon from lucide-react */}
+                    <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  </div>
 
                   {/* Password Requirements UI */}
                   <div className="grid grid-cols-2 gap-x-6 gap-y-3 px-6 py-6 bg-slate-50 dark:bg-slate-800 rounded-[1.5rem] border border-slate-100 dark:border-slate-700 transition-colors">
@@ -201,7 +286,7 @@ const SignUp: React.FC = () => {
                     <Requirement met={validations.hasLower} label="Lowercase" />
                     <Requirement met={validations.hasNumber} label="Special/Num" />
                     <div className="col-span-2 pt-4 border-t border-slate-100 dark:border-slate-700 mt-2">
-                       <Requirement met={validations.match} label="Phrases Match" />
+                      <Requirement met={validations.match} label="Phrases Match" />
                     </div>
                   </div>
 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { UserRole } from '../../types';
@@ -50,18 +49,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, role }) => {
     <>
       {/* Mobile Backdrop Overlay */}
       <div 
-        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 md:hidden ${
+        className={`fixed inset-0 bg-black/80 backdrop-blur-md z-[90] transition-opacity duration-300 md:hidden ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={() => setIsOpen(false)}
       />
 
       <aside className={`
-        fixed inset-y-0 left-0 z-50 transform sidebar-dark text-white transition-all duration-300 ease-in-out
+        fixed inset-y-0 left-0 z-[100] transform sidebar-dark text-white transition-all duration-300 ease-in-out
         ${isOpen ? 'w-72 translate-x-0' : 'w-0 -translate-x-full md:translate-x-0 md:w-0'}
-        md:relative md:translate-x-0 h-full flex flex-col overflow-hidden border-r dark:border-slate-800
+        md:relative md:translate-x-0 h-full flex flex-col overflow-hidden border-r border-white/10
       `}>
-        <div className="p-8 border-b border-white/5 flex items-center justify-between shrink-0">
+        <div className="p-8 border-b border-white/5 flex items-center justify-between shrink-0 bg-black">
            <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] whitespace-nowrap">National Hub</h2>
            <button 
              onClick={() => setIsOpen(false)}
@@ -71,7 +70,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, role }) => {
            </button>
         </div>
 
-        <nav className="mt-6 px-4 space-y-2 flex-1 overflow-y-auto custom-scrollbar">
+        <nav className="mt-6 px-4 space-y-2 flex-1 overflow-y-auto custom-scrollbar bg-black">
           {getNavItems().map((item) => (
             <NavLink
               key={item.path}
@@ -82,6 +81,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, role }) => {
                   ? 'bg-white/10 text-white' 
                   : 'text-slate-400 hover:text-white hover:bg-white/5'}
               `}
+              onClick={() => {
+                if (window.innerWidth < 768) setIsOpen(false);
+              }}
             >
               <div className="flex items-center gap-4">
                  <item.icon size={18} className="shrink-0" />
@@ -96,7 +98,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, role }) => {
           ))}
         </nav>
 
-        <div className="p-8 text-center text-[8px] font-black text-slate-600 uppercase tracking-widest border-t border-white/5 shrink-0 whitespace-nowrap">
+        <div className="p-8 text-center text-[8px] font-black text-slate-600 uppercase tracking-widest border-t border-white/5 shrink-0 whitespace-nowrap bg-black">
            IDTrust Protocol v2.4.11
         </div>
       </aside>

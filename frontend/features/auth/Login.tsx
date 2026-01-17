@@ -1,15 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
+import api from '../../services/api';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { UserRole } from '../../types';
-import { Shield, Lock, ChevronRight, Fingerprint, RefreshCcw, Loader2, Landmark, Sun, Moon } from 'lucide-react';
+import { Shield, Lock, ChevronRight, Fingerprint, RefreshCcw, Loader2, Landmark, Sun, Moon, Eye, EyeOff, ShieldAlert } from 'lucide-react';
 
 const Login: React.FC = () => {
-  const { login, verifyMfa } = useAuth();
+  const { login, sendMfa, verifyMfa } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [email, setEmail] = useState('citizen@idtrust.gov');
+  const [password, setPassword] = useState('password123'); // Controlled state
+  const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<UserRole>(UserRole.CITIZEN);
   const [step, setStep] = useState(1);
   const [mfaCode, setMfaCode] = useState('');
@@ -30,31 +33,62 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      setStep(2);
+    setError('');
+
+    try {
+      // 1. Send OTP using Context
+      await sendMfa(email);
+
+      // 2. Move to Step 2
+      setTimeout(() => {
+        setStep(2);
+        setLoading(false);
+        setTimer(30);
+      }, 500);
+    } catch (err: any) {
+      // ... error handling ...
+      console.error("OTP Send Failed", err);
+      console.error("OTP Send Failed", err);
+      // Use exact backend error if available, else generic
+      const msg = err.response?.data?.message || 'Authentication service unavailable';
+      setError(msg);
       setLoading(false);
-      setTimer(30);
-    }, 1200);
+    }
   };
 
   const handleMfaSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const valid = await verifyMfa(mfaCode);
-    if (valid) {
-      setIsDecrypting(true);
-      const interval = setInterval(() => {
-        setProgress(p => {
-          if (p >= 100) {
-            clearInterval(interval);
-            login(email, role);
-            return 100;
-          }
-          return p + 5;
-        });
-      }, 80);
-    } else {
-      setError('Invalid verification code');
+    setError('');
+
+    try {
+      // 3. Verify OTP using email from state
+      const valid = await verifyMfa(mfaCode, email);
+
+      if (valid) {
+        setIsDecrypting(true);
+        const interval = setInterval(async () => {
+          setProgress(p => {
+            if (p >= 100) {
+              clearInterval(interval);
+              // 4. Perform Login
+              login(email, password, role).catch(err => {
+                setError('Login failed. Check credentials.');
+                setIsDecrypting(false);
+                setLoading(false);
+                setStep(1);
+              });
+              return 100;
+            }
+            return p + 5;
+          });
+        }, 50); // Faster animation
+      } else {
+        setError('Invalid verification code');
+        setLoading(false);
+      }
+    } catch (err) {
+      setError('Verification failed');
       setLoading(false);
     }
   };
@@ -64,11 +98,11 @@ const Login: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] text-white p-4 transition-colors duration-500">
         <div className="max-w-md w-full text-center">
           <div className="mb-12">
-             <Loader2 size={64} className="mx-auto text-orange-400 animate-spin" />
+            <Loader2 size={64} className="mx-auto text-orange-400 animate-spin" />
           </div>
           <h2 className="text-4xl font-black mb-4 tracking-tighter uppercase">Decrypting Shard...</h2>
           <p className="text-slate-400 font-bold mb-12 uppercase text-xs tracking-widest">Connecting to Sovereign Node-Alpha-X</p>
-          
+
           <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden mb-4">
             <div className="h-full bg-orange-400" style={{ width: `${progress}%`, transition: 'width 0.1s linear' }}></div>
           </div>
@@ -83,13 +117,13 @@ const Login: React.FC = () => {
       <div className="h-10 bg-[#0f172a] dark:bg-black w-full flex items-center justify-between px-6 shrink-0 border-b dark:border-slate-800">
         <span className="text-[10px] font-black text-white uppercase tracking-widest">National Identity Gateway</span>
         <div className="flex items-center gap-6">
-           <button onClick={toggleTheme} className="text-white hover:text-orange-400 transition-colors">
-              {theme === 'light' ? <Moon size={14} /> : <Sun size={14} />}
-           </button>
-           <div className="flex gap-2">
-              <span className="h-3 w-3 rounded-full bg-orange-400"></span>
-              <span className="h-3 w-3 rounded-full bg-white"></span>
-           </div>
+          <button onClick={toggleTheme} className="text-white hover:text-orange-400 transition-colors">
+            {theme === 'light' ? <Moon size={14} /> : <Sun size={14} />}
+          </button>
+          <div className="flex gap-2">
+            <span className="h-3 w-3 rounded-full bg-orange-400"></span>
+            <span className="h-3 w-3 rounded-full bg-white"></span>
+          </div>
         </div>
       </div>
 
@@ -98,7 +132,7 @@ const Login: React.FC = () => {
           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden transition-colors">
             {step === 1 ? (
               <div className="p-10 md:p-14">
-                 <div className="text-center mb-12">
+                <div className="text-center mb-12">
                   <div className="inline-flex items-center justify-center h-20 w-20 rounded-[1.5rem] bg-[#0f172a] dark:bg-black text-white mb-8 shadow-xl">
                     <Landmark size={40} />
                   </div>
@@ -115,11 +149,10 @@ const Login: React.FC = () => {
                           key={r}
                           type="button"
                           onClick={() => setRole(r)}
-                          className={`py-4 px-1 text-[9px] font-black uppercase tracking-widest rounded-xl border-2 transition-all ${
-                            role === r 
-                            ? 'border-[#0f172a] dark:border-indigo-600 bg-[#0f172a] dark:bg-indigo-600 text-white shadow-lg' 
+                          className={`py-4 px-1 text-[9px] font-black uppercase tracking-widest rounded-xl border-2 transition-all ${role === r
+                            ? 'border-[#0f172a] dark:border-indigo-600 bg-[#0f172a] dark:bg-indigo-600 text-white shadow-lg'
                             : 'border-slate-50 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:bg-white dark:hover:bg-slate-700 hover:border-slate-200 dark:hover:border-slate-600'
-                          }`}
+                            }`}
                         >
                           {r}
                         </button>
@@ -136,14 +169,31 @@ const Login: React.FC = () => {
                       className="block w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-[#0f172a] dark:focus:ring-indigo-600 focus:bg-white dark:focus:bg-slate-900 text-sm font-bold dark:text-white outline-none transition-all"
                       placeholder="Identifier / DID"
                     />
-                    <input
-                      type="password"
-                      required
-                      defaultValue="password123"
-                      className="block w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-[#0f172a] dark:focus:ring-indigo-600 focus:bg-white dark:focus:bg-slate-900 text-sm font-bold dark:text-white outline-none transition-all"
-                      placeholder="Secure Phrase"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="block w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-[#0f172a] dark:focus:ring-indigo-600 focus:bg-white dark:focus:bg-slate-900 text-sm font-bold dark:text-white outline-none transition-all"
+                        placeholder="Secure Phrase"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                   </div>
+
+                  {error && (
+                    <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                      <ShieldAlert className="text-rose-500 shrink-0" size={16} />
+                      <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest leading-relaxed">{error}</p>
+                    </div>
+                  )}
 
                   <button
                     type="submit"
@@ -196,7 +246,7 @@ const Login: React.FC = () => {
                   </button>
 
                   <div className="text-center">
-                     <span className="text-[9px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest">Standard Demo Code: 123456</span>
+                    <span className="text-[9px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest">Standard Demo Code: 123456</span>
                   </div>
                 </form>
               </div>
