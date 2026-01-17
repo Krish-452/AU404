@@ -1,18 +1,29 @@
-const { authenticator } = require('otplib');
+const speakeasy = require('speakeasy');
 
-authenticator.options = {
-  step: 30,        
-  digits: 6
+const generateSecret = () => {
+  const secret = speakeasy.generateSecret({ length: 20 });
+  return secret.base32;
 };
 
 const generateOTP = (secret) => {
-  return authenticator.generate(secret);
-};
-const generateSecret = () => {
-  return authenticator.generateSecret();
-};
-const verifyOTP = (token, secret) => {
-  return authenticator.verify({ token, secret });
+  const key = speakeasy.totp({
+    secret: secret,
+    encoding: 'base32',
+    step: 30
+  });
+  console.log(key)
+  return key;
 };
 
-module.exports = { generateOTP, verifyOTP, generateSecret };
+const verifyOTP = (token, secret) => {
+  const key = speakeasy.totp.verify({
+    secret: secret,
+    encoding: 'base32',
+    token: token,
+    window: 2
+  });
+  console.log(key)
+  return key
+};
+
+module.exports = { generateSecret, generateOTP, verifyOTP };
