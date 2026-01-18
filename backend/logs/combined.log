@@ -1,0 +1,9 @@
+{"level":"info","message":"[AUDIT] Authorizing Request: req_1 by User: 696c6d3b60dcaf89ab0b44b2","service":"au404-backend","timestamp":"2026-01-18 11:04:34"}
+{"level":"info","message":"[AUDIT] Export Logs requested by: 696c6d3b60dcaf89ab0b44b2","service":"au404-backend","timestamp":"2026-01-18 11:04:44"}
+{"level":"info","message":"[AUDIT] Authorizing Request: req_1 by User: 696c6d3b60dcaf89ab0b44b2","service":"au404-backend","timestamp":"2026-01-18 11:06:50"}
+{"level":"info","message":"[AUDIT] Authorizing Request: req_1 by User: 696c6d3b60dcaf89ab0b44b2","service":"au404-backend","timestamp":"2026-01-18 11:07:53"}
+{"level":"info","message":"[AUDIT] Export Logs requested by: 696c77817d0c2af2d3a186ef","service":"au404-backend","timestamp":"2026-01-18 11:33:16"}
+{"level":"info","message":"[AUDIT] Authorizing Request: req_1 by User: 696c77817d0c2af2d3a186ef","service":"au404-backend","timestamp":"2026-01-18 11:33:55"}
+{"level":"info","message":"[AUDIT] Authorizing Request: req_1 by User: 696c881e33aed6f2aacee230","service":"au404-backend","timestamp":"2026-01-18 12:44:32"}
+{"level":"info","message":"[AUDIT] Authorizing Request: req_1 by User: 696c881e33aed6f2aacee230","service":"au404-backend","timestamp":"2026-01-18 12:46:02"}
+{"level":"info","message":"[AUDIT] Export Logs requested by: 696c881e33aed6f2aacee230","service":"au404-backend","timestamp":"2026-01-18 12:46:33"}

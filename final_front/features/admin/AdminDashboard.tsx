@@ -1,0 +1,163 @@
+
+import React, { useState, useEffect } from 'react';
+import { ShieldCheck, AlertCircle, Users, Activity, Terminal, ShieldAlert, Globe, Search, Cpu, Zap, Fingerprint, Lock, Loader2, Play } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import api from '../../services/api.ts';
+
+const AdminDashboard: React.FC = () => {
+  const [stats, setStats] = useState<any>(null);
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [lockdownLoading, setLockdownLoading] = useState(false);
+  const [isLockdown, setIsLockdown] = useState(false);
+
+  const fetchStats = async () => {
+    try {
+      const { data } = await api.get('/admin/stats');
+      if (data.success) {
+        setStats(data.stats);
+        setChartData(data.chartData);
+        setIsLockdown(data.stats.isLockdown);
+      }
+    } catch (error) {
+      console.error('Failed to fetch stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+    // Refresh stats every 10 seconds
+    const interval = setInterval(fetchStats, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleLockdown = async () => {
+    setLockdownLoading(true);
+    try {
+      if (isLockdown) {
+        await api.post('/admin/resume');
+        setIsLockdown(false);
+        alert('Server resumed normal operations.');
+      } else {
+        await api.post('/admin/lockdown');
+        setIsLockdown(true);
+        alert('Global lockdown activated. All authentication endpoints frozen.');
+      }
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Action failed');
+    } finally {
+      setLockdownLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-32">
+        <Loader2 size={48} className="animate-spin text-indigo-500" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-12 animate-in fade-in duration-700 pb-20">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-end gap-6">
+        <div className="flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-900/50">
+            <Lock size={14} className="animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-widest">FIPS 140-2 HSM: ACTIVE</span>
+          </div>
+          <button
+            onClick={handleLockdown}
+            disabled={lockdownLoading}
+            className={`px-8 py-4 ${isLockdown ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-rose-600 hover:bg-rose-700'} text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 shadow-xl ${isLockdown ? 'shadow-emerald-200' : 'shadow-rose-200'} dark:shadow-none flex items-center gap-3 disabled:opacity-50`}
+          >
+            {lockdownLoading ? <Loader2 size={18} className="animate-spin" /> : isLockdown ? <Play size={18} /> : <ShieldAlert size={18} />}
+            {isLockdown ? 'Resume Operations' : 'Global Lockdown'}
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-[#0f172a] dark:bg-black rounded-2xl p-8 border dark:border-slate-800 flex items-center justify-between text-white relative overflow-hidden group">
+          <div className="relative z-10 flex items-center gap-4">
+            <Fingerprint className="text-indigo-400 group-hover:scale-110 transition-transform" size={24} />
+            <span className="text-[10px] font-black uppercase tracking-widest">Behavioral Biometrics</span>
+          </div>
+          <span className="text-2xl font-black text-emerald-400 font-mono relative z-10">{stats?.biometricStatus || 'SYNCHED'}</span>
+          <div className="absolute inset-0 bg-indigo-600/5 translate-x-full group-hover:translate-x-0 transition-transform duration-700" />
+        </div>
+        <div className="bg-[#0f172a] dark:bg-black rounded-2xl p-8 border dark:border-slate-800 flex items-center justify-between text-white relative overflow-hidden group">
+          <div className="relative z-10 flex items-center gap-4">
+            <Zap className="text-orange-400 group-hover:scale-110 transition-transform" size={24} />
+            <span className="text-[10px] font-black uppercase tracking-widest">Bot/Automation Guard</span>
+          </div>
+          <span className="text-2xl font-black text-emerald-400 font-mono relative z-10">{stats?.botBlocked || '100%'} BLOCKED</span>
+          <div className="absolute inset-0 bg-orange-600/5 translate-x-full group-hover:translate-x-0 transition-transform duration-700" />
+        </div>
+        <div className="bg-[#0f172a] dark:bg-black rounded-2xl p-8 border dark:border-slate-800 flex items-center justify-between text-white relative overflow-hidden group">
+          <div className="relative z-10 flex items-center gap-4">
+            <Globe className="text-blue-400 group-hover:scale-110 transition-transform" size={24} />
+            <span className="text-[10px] font-black uppercase tracking-widest">API Layer WAF</span>
+          </div>
+          <span className="text-2xl font-black text-white font-mono relative z-10">{stats?.wafIncidents || 0} INCIDENTS</span>
+          <div className="absolute inset-0 bg-blue-600/5 translate-x-full group-hover:translate-x-0 transition-transform duration-700" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {[
+          { label: 'Sovereign Sessions', value: stats?.sovereignSessions || '1.4M', icon: Activity, color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
+          { label: 'Trusted Partners', value: stats?.trustedPartners || '4.2K', icon: ShieldCheck, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
+          { label: 'DDoS Mitigation', value: stats?.ddosStatus || 'ACTIVE', icon: Globe, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-500/10' },
+          { label: 'Secret Rotation', value: stats?.secretRotation || 'DAILY', icon: Cpu, color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-500/10' },
+        ].map((stat, i) => (
+          <div key={i} className="bg-white dark:bg-slate-900 p-10 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+            <div className={`p-4 rounded-2xl w-fit mb-8 ${stat.bg} ${stat.color} dark:text-white transition-colors`}>
+              <stat.icon size={28} />
+            </div>
+            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">{stat.label}</p>
+            <p className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">{stat.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-white dark:bg-slate-900 p-10 md:p-14 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-sm transition-colors">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-16">
+          <h3 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-4 uppercase tracking-tight">
+            <Activity className="text-indigo-600 dark:text-indigo-400" size={32} />
+            National Identity Traffic
+          </h3>
+          <div className="flex gap-2">
+            <span className="px-4 py-2 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] font-black rounded-xl border border-indigo-100 dark:border-indigo-900/50 tracking-widest">ZERO-KNOWLEDGE AUTH</span>
+          </div>
+        </div>
+        <div className="w-full h-[400px] min-h-[400px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartData}>
+              <defs>
+                <linearGradient id="colorReq" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" className="dark:opacity-10" />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 900 }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 900 }} />
+              <Tooltip
+                contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.1)', padding: '20px', backgroundColor: '#0f172a', color: '#fff' }}
+                labelStyle={{ fontWeight: 900, marginBottom: '10px', fontSize: '11px', textTransform: 'uppercase' }}
+                itemStyle={{ fontSize: '11px', fontWeight: 700, color: '#a5b4fc' }}
+              />
+              <Area type="monotone" dataKey="requests" stroke="#6366f1" strokeWidth={6} fillOpacity={1} fill="url(#colorReq)" />
+              <Area type="monotone" dataKey="load" stroke="#10b981" strokeWidth={3} strokeDasharray="5 5" fill="none" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AdminDashboard;
