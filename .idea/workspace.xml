@@ -4,7 +4,36 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7382abcb-1193-40fe-8b72-c074fb667d61" name="Changes" comment="Added README.md" />
+    <list default="true" id="7382abcb-1193-40fe-8b72-c074fb667d61" name="Changes" comment="V1.2">
+      <change beforePath="$PROJECT_DIR$/frontend/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/App.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/layout/Navbar.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/layout/Sidebar.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/context/AuthContext.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/context/ThemeContext.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/admin/AdminDashboard.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/admin/AdminSecurity.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/auth/Login.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/auth/SignUp.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/citizen/CitizenAssets.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/citizen/CitizenDashboard.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/citizen/CitizenLogs.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/citizen/CitizenRequests.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/company/CompanyDashboard.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/company/CompanyRequestForm.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/company/CompanySessions.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/examples/ExamplePortals.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/features/landing/LandingPage.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/index.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/metadata.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/routes/ProtectedRoute.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/services/geminiService.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/tsconfig.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/types.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/vite.config.ts" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -68,6 +97,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultAutoModeForALLUsers.v1": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "main",
     "junie.onboarding.icon.badge.shown": "true",
     "last_opened_file_path": "C:/Users/ADMIN/PycharmProjects/AU404/backend",
     "node.js.detected.package.eslint": "true",
@@ -82,6 +112,9 @@
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\ADMIN\PycharmProjects\AU404\backend" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\ADMIN\PycharmProjects\AU404" />
     </key>
   </component>
   <component name="RunAnythingCache">
@@ -107,6 +140,7 @@
       <workItem from="1768629140416" duration="9646000" />
       <workItem from="1768678672806" duration="264000" />
       <workItem from="1768678948172" duration="3248000" />
+      <workItem from="1768724614781" duration="141000" />
     </task>
     <task id="LOCAL-00001" summary="added frontend, backend, test folders">
       <option name="closed" value="true" />
@@ -164,11 +198,30 @@
       <option name="project" value="LOCAL" />
       <updated>1768681721283</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="V1.2">
+      <option name="closed" value="true" />
+      <created>1768724689789</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1768724689789</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="added frontend, backend, test folders" />
@@ -176,6 +229,7 @@
     <MESSAGE value="added frontend" />
     <MESSAGE value="Integrated backend and frontend" />
     <MESSAGE value="Added README.md" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added README.md" />
+    <MESSAGE value="V1.2" />
+    <option name="LAST_COMMIT_MESSAGE" value="V1.2" />
   </component>
 </project>
